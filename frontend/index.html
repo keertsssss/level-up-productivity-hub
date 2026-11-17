@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Level Up – Productivity Hub</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <!-- Top Header -->
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-icon" aria-hidden="true">⚡</div>
+        <div>
+          <h1>Level Up</h1>
+          <p class="brand-subtitle">Productivity Hub</p>
+        </div>
+      </div>
+
+      <div class="topbar-controls">
+        <div class="date-nav">
+          <label for="datePicker" class="sr-only">Selected Date</label>
+          <input type="date" id="datePicker" class="input date-input" />
+          <button type="button" id="todayBtn" class="btn btn-ghost btn-sm">Today</button>
+        </div>
+        <button type="button" id="refreshBtn" class="btn btn-ghost btn-sm" title="Refresh data" aria-label="Refresh data">
+          ↻ Sync
+        </button>
+        <button type="button" id="themeToggle" class="btn btn-ghost btn-sm" aria-label="Toggle dark/light mode">
+          <span id="themeIcon">☀️</span>
+          <span id="themeLabel">Light</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Status / Error Banner -->
+    <div id="errorBanner" class="error-banner hidden" role="alert">
+      <span id="errorBannerText"></span>
+      <button type="button" id="dismissErrorBtn" class="btn-icon-only" aria-label="Dismiss error">✕</button>
+    </div>
+
+    <!-- Gamification Hero Banner -->
+    <section class="hero-card" aria-label="Player Progress">
+      <div class="hero-left">
+        <div class="level-badge" id="levelBadge">
+          <span class="level-pill" id="levelNumber">LVL 1</span>
+          <span class="level-name" id="levelName">Beginner</span>
+        </div>
+        <div class="xp-block">
+          <div class="xp-meta">
+            <span class="xp-total" id="xpTotal">0 XP</span>
+            <span class="xp-next" id="xpNext">100 XP to Explorer</span>
+          </div>
+          <div class="progress-track" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="xpProgressBarWrap">
+            <div class="progress-fill xp-fill" id="xpProgressBar" style="width: 0%"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="hero-stats">
+        <div class="streak-chip">
+          <span class="chip-icon" aria-hidden="true">🔥</span>
+          <div>
+            <div class="chip-value" id="currentStreak">0 days</div>
+            <div class="chip-label">Current Streak</div>
+          </div>
+        </div>
+        <div class="streak-chip">
+          <span class="chip-icon" aria-hidden="true">🏆</span>
+          <div>
+            <div class="chip-value" id="longestStreak">0 days</div>
+            <div class="chip-label">Best Streak</div>
+          </div>
+        </div>
+        <div class="streak-chip">
+          <span class="chip-icon" aria-hidden="true">📈</span>
+          <div>
+            <div class="chip-value" id="weeklyAvgChip">0%</div>
+            <div class="chip-label">7-Day Avg</div>
+          </div>
+        </div>
+        <div class="streak-chip">
+          <span class="chip-icon" aria-hidden="true">🗓️</span>
+          <div>
+            <div class="chip-value" id="monthlyAvgChip">0%</div>
+            <div class="chip-label">30-Day Avg</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- KPI Cards -->
+    <section class="kpi-grid" aria-label="Daily Statistics">
+      <article class="kpi-card kpi-highlight">
+        <div class="kpi-header">
+          <span class="kpi-label">Daily Productivity</span>
+          <span class="kpi-emoji" aria-hidden="true">🎯</span>
+        </div>
+        <div class="kpi-value" id="kpiProductivity">0%</div>
+        <div class="mini-track">
+          <div class="mini-fill" id="kpiProductivityBar" style="width: 0%"></div>
+        </div>
+        <div class="kpi-foot" id="kpiProductivityFoot">For selected day</div>
+      </article>
+
+      <article class="kpi-card">
+        <div class="kpi-header">
+          <span class="kpi-label">Total Tasks</span>
+          <span class="kpi-emoji" aria-hidden="true">📋</span>
+        </div>
+        <div class="kpi-value" id="kpiTotalTasks">0</div>
+        <div class="kpi-foot">Assigned (excl. cancelled)</div>
+      </article>
+
+      <article class="kpi-card">
+        <div class="kpi-header">
+          <span class="kpi-label">Completed Tasks</span>
+          <span class="kpi-emoji" aria-hidden="true">✅</span>
+        </div>
+        <div class="kpi-value text-success" id="kpiCompletedTasks">0</div>
+        <div class="kpi-foot">Done on selected day</div>
+      </article>
+
+      <article class="kpi-card">
+        <div class="kpi-header">
+          <span class="kpi-label">Pending Tasks</span>
+          <span class="kpi-emoji" aria-hidden="true">⏳</span>
+        </div>
+        <div class="kpi-value text-warning" id="kpiPendingTasks">0</div>
+        <div class="kpi-foot">Remaining today</div>
+      </article>
+
+      <article class="kpi-card">
+        <div class="kpi-header">
+          <span class="kpi-label">Habit Completion</span>
+          <span class="kpi-emoji" aria-hidden="true">🔁</span>
+        </div>
+        <div class="kpi-value text-accent" id="kpiHabitRate">0%</div>
+        <div class="kpi-foot" id="kpiHabitCount">0 / 0 scheduled</div>
+      </article>
+    </section>
+
+    <!-- Main Dashboard Grid -->
+    <main class="main-grid">
+      <!-- Tasks Panel -->
+      <section class="panel tasks-panel" aria-labelledby="tasksHeading">
+        <div class="panel-header">
+          <div>
+            <h2 id="tasksHeading">Tasks</h2>
+            <p class="panel-sub" id="tasksSubtitle">Manage tasks and earn +10 XP (+15 XP for High priority)</p>
+          </div>
+          <button type="button" id="openTaskModalBtn" class="btn btn-primary">+ New Task</button>
+        </div>
+
+        <div class="filters-bar">
+          <input type="search" id="taskSearch" class="input filter-search" placeholder="Search tasks..." aria-label="Search tasks" />
+          <select id="taskScope" class="input filter-select" aria-label="Task date scope">
+            <option value="selected">Selected Date</option>
+            <option value="all">All Dates</option>
+          </select>
+          <select id="taskCategoryFilter" class="input filter-select" aria-label="Filter by category">
+            <option value="">All Categories</option>
+            <option value="Learning">Learning</option>
+            <option value="Career">Career</option>
+            <option value="Fitness">Fitness</option>
+            <option value="Personal">Personal</option>
+            <option value="Projects">Projects</option>
+            <option value="Other">Other</option>
+          </select>
+          <select id="taskPriorityFilter" class="input filter-select" aria-label="Filter by priority">
+            <option value="">All Priorities</option>
+            <option value="High">High</option>
+            <option value="Medium">Medium</option>
+            <option value="Low">Low</option>
+          </select>
+          <select id="taskStatusFilter" class="input filter-select" aria-label="Filter by status">
+            <option value="">All Statuses</option>
+            <option value="pending">Pending</option>
+            <option value="completed">Completed</option>
+            <option value="cancelled">Cancelled</option>
+          </select>
+        </div>
+
+        <div id="taskList" class="item-list" aria-live="polite"></div>
+      </section>
+
+      <!-- Side Column: Habits + Weekly Chart -->
+      <div class="side-stack">
+        <!-- Habit Tracker -->
+        <section class="panel habits-panel" aria-labelledby="habitsHeading">
+          <div class="panel-header">
+            <div>
+              <h2 id="habitsHeading">Habit Tracker</h2>
+              <p class="panel-sub">+5 XP per habit (+20 XP bonus for completing all)</p>
+            </div>
+            <button type="button" id="toggleHabitFormBtn" class="btn btn-secondary btn-sm">+ Add Habit</button>
+          </div>
+
+          <form id="habitForm" class="habit-form hidden" novalidate>
+            <div class="form-row">
+              <input type="text" id="habitNameInput" class="input" placeholder="e.g. Read 20 minutes" maxlength="100" required />
+              <select id="habitFreqSelect" class="input habit-freq-select" aria-label="Habit frequency">
+                <option value="daily">Daily</option>
+                <option value="weekdays">Specific Days</option>
+              </select>
+            </div>
+            <div id="weekdayPicker" class="weekday-picker hidden" role="group" aria-label="Select weekdays">
+              <label class="day-pill"><input type="checkbox" value="0" /><span>Sun</span></label>
+              <label class="day-pill"><input type="checkbox" value="1" checked /><span>Mon</span></label>
+              <label class="day-pill"><input type="checkbox" value="2" /><span>Tue</span></label>
+              <label class="day-pill"><input type="checkbox" value="3" checked /><span>Wed</span></label>
+              <label class="day-pill"><input type="checkbox" value="4" /><span>Thu</span></label>
+              <label class="day-pill"><input type="checkbox" value="5" checked /><span>Fri</span></label>
+              <label class="day-pill"><input type="checkbox" value="6" /><span>Sat</span></label>
+            </div>
+            <div id="habitFormErrors" class="form-errors hidden"></div>
+            <div class="habit-form-actions">
+              <button type="button" id="cancelHabitFormBtn" class="btn btn-ghost btn-sm">Cancel</button>
+              <button type="submit" class="btn btn-primary btn-sm">Save Habit</button>
+            </div>
+          </form>
+
+          <div id="habitList" class="item-list" aria-live="polite"></div>
+        </section>
+
+        <!-- Weekly Productivity Chart -->
+        <section class="panel chart-panel" aria-labelledby="chartHeading">
+          <div class="panel-header">
+            <div>
+              <h2 id="chartHeading">Weekly Productivity</h2>
+              <p class="panel-sub">Last 7 days ending <span id="chartRangeEnd">today</span></p>
+            </div>
+            <div class="chart-header-right">
+              <div class="segmented" role="group" aria-label="Weekly chart style">
+                <button type="button" class="seg-btn active" data-weekly-mode="bars">Bars</button>
+                <button type="button" class="seg-btn" data-weekly-mode="line">Trend</button>
+              </div>
+              <div class="chart-legend">
+                <span class="legend-item"><span class="legend-dot dot-task"></span>Tasks %</span>
+                <span class="legend-item"><span class="legend-dot dot-habit"></span>Habits %</span>
+              </div>
+            </div>
+          </div>
+
+          <div id="weeklyChart" class="weekly-chart" aria-live="polite"></div>
+        </section>
+      </div>
+    </main>
+
+    <!-- Task Pie Charts & Breakdown Graphs -->
+    <section class="panel analytics-panel" aria-labelledby="taskChartsHeading">
+      <div class="panel-header">
+        <div>
+          <h2 id="taskChartsHeading">Task Pie Charts &amp; Breakdown Graphs</h2>
+          <p class="panel-sub" id="analyticsSubtitle">Live task distribution by status, category, and priority</p>
+        </div>
+        <div class="analytics-controls">
+          <div class="segmented" role="group" aria-label="Analytics task scope">
+            <button type="button" class="seg-btn active" data-analytics-scope="all">All Tasks</button>
+            <button type="button" class="seg-btn" data-analytics-scope="selected">Selected Date</button>
+          </div>
+          <div class="segmented" role="group" aria-label="Breakdown dimension">
+            <button type="button" class="seg-btn active" data-pie-dim="category">By Category</button>
+            <button type="button" class="seg-btn" data-pie-dim="priority">By Priority</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="charts-grid">
+        <article class="chart-subcard">
+          <h3>Task Status Pie Chart</h3>
+          <div id="statusPieChart" class="pie-card-body"></div>
+        </article>
+
+        <article class="chart-subcard">
+          <h3 id="dimensionPieTitle">Tasks by Category Pie Chart</h3>
+          <div id="dimensionPieChart" class="pie-card-body"></div>
+        </article>
+
+        <article class="chart-subcard">
+          <h3 id="completionGraphTitle">Completion Graph by Category</h3>
+          <div id="completionGraph" class="completion-graph"></div>
+        </article>
+      </div>
+    </section>
+
+    <!-- Achievements & Levels Section -->
+    <section class="panel achievements-panel" aria-labelledby="achievementsHeading">
+      <div class="panel-header">
+        <div>
+          <h2 id="achievementsHeading">Achievements &amp; Level Milestones</h2>
+          <p class="panel-sub">Unlock badges through streaks, completed tasks, and daily perfection</p>
+        </div>
+        <span class="badge-counter" id="achievementCounter">0 / 6 Unlocked</span>
+      </div>
+
+      <div id="achievementsGrid" class="achievements-grid"></div>
+      <div class="levels-strip" id="levelsStrip" aria-label="Level tiers"></div>
+    </section>
+  </div>
+
+  <!-- Create / Edit Task Modal -->
+  <div id="taskModal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="taskModalTitle">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 id="taskModalTitle">New Task</h3>
+        <button type="button" id="closeTaskModalBtn" class="btn-icon-only" aria-label="Close modal">✕</button>
+      </div>
+
+      <form id="taskForm" class="modal-form" novalidate>
+        <input type="hidden" id="taskIdField" />
+
+        <div class="field">
+          <label for="taskTitleField">Title <span class="required">*</span></label>
+          <input type="text" id="taskTitleField" class="input" maxlength="120" placeholder="e.g. Review SQL joins" required />
+        </div>
+
+        <div class="field">
+          <label for="taskDescField">Description</label>
+          <textarea id="taskDescField" class="input textarea" rows="3" placeholder="Optional details or notes..."></textarea>
+        </div>
+
+        <div class="field-row">
+          <div class="field">
+            <label for="taskCategoryField">Category</label>
+            <select id="taskCategoryField" class="input">
+              <option value="Learning">Learning</option>
+              <option value="Career">Career</option>
+              <option value="Fitness">Fitness</option>
+              <option value="Personal">Personal</option>
+              <option value="Projects">Projects</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="taskPriorityField">Priority</label>
+            <select id="taskPriorityField" class="input">
+              <option value="High">High (+15 XP)</option>
+              <option value="Medium" selected>Medium (+10 XP)</option>
+              <option value="Low">Low (+10 XP)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="field-row">
+          <div class="field">
+            <label for="taskStartDateField">Start Date</label>
+            <input type="date" id="taskStartDateField" class="input" />
+          </div>
+          <div class="field">
+            <label for="taskDueDateField">Due Date <span class="required">*</span></label>
+            <input type="date" id="taskDueDateField" class="input" required />
+          </div>
+        </div>
+
+        <div class="field" id="modalSubtasksSection">
+          <label for="modalSubtaskInput">Subtasks (optional)</label>
+          <div class="modal-subtask-input-row">
+            <input type="text" id="modalSubtaskInput" class="input" maxlength="120" placeholder="Add a step, e.g. Read chapter 1" />
+            <button type="button" id="addModalSubtaskBtn" class="btn btn-secondary btn-sm">+ Add</button>
+          </div>
+          <div id="modalSubtasksList" class="modal-subtasks-list"></div>
+        </div>
+
+        <div id="taskFormErrors" class="form-errors hidden"></div>
+
+        <div class="modal-actions">
+          <button type="button" id="cancelTaskModalBtn" class="btn btn-ghost">Cancel</button>
+          <button type="submit" id="saveTaskBtn" class="btn btn-primary">Create Task</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Toast Stack -->
+  <div id="toastStack" class="toast-stack" aria-live="polite"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>

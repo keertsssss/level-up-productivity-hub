@@ -1,0 +1,16 @@
+# Dependencies
+node_modules/
+
+# SQLite databases & runtime locks
+database/*.db
+database/*.db-wal
+database/*.db-shm
+
+# Legacy extracted archive folder
+files/
+
+# Logs & OS artifacts
+*.log
+npm-debug.log*
+.DS_Store
+Thumbs.db
